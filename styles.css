@@ -1,24 +1,24 @@
 .my-highlight {
-  background-color: #ffeb3b; /* Jaune */
-  color: black;
+  background-color: rgba(255, 241, 118, 0.5); 
+  color: inherit;
   cursor: pointer;
   border-radius: 2px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  border-bottom: 1px solid rgba(251, 192, 45, 0.3);
   transition: background-color 0.2s;
 }
 
 .my-highlight:hover {
-  background-color: #fdd835;
+  background-color: rgba(255, 241, 118, 0.8);
 }
 
 #note-popup-container {
   position: absolute;
   background-color: #ffffff;
-  border: 1px solid #ccc;
+  border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 10px;
   z-index: 99999;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
   display: none;
   width: 250px;
   font-family: sans-serif;
@@ -27,23 +27,25 @@
 #note-textarea {
   width: 100%;
   height: 80px;
-  border: 1px solid #ddd;
+  border: 1px solid #eee;
   border-radius: 4px;
-  padding: 5px;
+  padding: 8px;
   resize: vertical;
   font-size: 13px;
   outline: none;
   box-sizing: border-box;
+  font-family: inherit;
 }
 
 #note-textarea:focus {
-  border-color: #fbc02d;
+  border-color: #fdd835;
 }
 
 .popup-title {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 5px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
   font-weight: bold;
 }
-
