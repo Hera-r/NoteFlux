@@ -3,29 +3,16 @@ const POPUP_ID = "note-popup-container";
 const TEXTAREA_ID = "note-textarea";
 
 const BLOCKED_DOMAINS = [
-    "google.",
-    "bing.com",
-    "yahoo.com",
-    "duckduckgo",
-    "facebook.com",
-    "twitter.com",
-    "x.com",
-    "instagram.com",
-    "linkedin.com",
-    "tiktok.com",
-    "chatgpt.com",
-    "openai.com",
-    "gemini.google",
-    "claude.ai",
-    "localhost"
+    "google.", "bing.com", "yahoo.com", "duckduckgo",
+    "facebook.com", "twitter.com", "x.com", "instagram.com", "linkedin.com", "tiktok.com",
+    "chatgpt.com", "openai.com", "gemini.google", "claude.ai", "localhost"
 ];
-
 
 const currentHostname = window.location.hostname;
 const isBlocked = BLOCKED_DOMAINS.some(domain => currentHostname.includes(domain));
 
 if (isBlocked) {
-    console.log("Auto Highlighter: Disabled on this domain.");
+    console.log("NoteFlux: Disabled on this domain.");
 } else {
     startExtension();
 }
@@ -36,7 +23,6 @@ function startExtension() {
         savedHighlights = result.highlightsData || {};
         applyHighlights();
     });
-
     createPopupElement();
     attachSelectionListener();
     attachPopupCloseListener();
@@ -57,7 +43,6 @@ function attachSelectionListener() {
     });
 }
 
-
 function attachPopupCloseListener() {
     document.addEventListener('mousedown', function(event) {
         const popup = document.getElementById(POPUP_ID);
@@ -77,6 +62,14 @@ function saveHighlight(key, note) {
     });
 }
 
+function deleteHighlight(key) {
+    delete savedHighlights[key];
+
+    chrome.storage.local.set({ highlightsData: savedHighlights }, function() {
+        document.getElementById(POPUP_ID).style.display = 'none';
+        location.reload(); 
+    });
+}
 
 function applyHighlights() {
     const dataKeys = Object.keys(savedHighlights).sort((a, b) => b.length - a.length);
@@ -140,12 +133,11 @@ function attachClickEvents() {
             const currentNote = savedHighlights[key] || "";
 
             const rect = span.getBoundingClientRect();
-
             popup.style.top = (window.scrollY + rect.bottom + 5) + 'px';
             popup.style.left = (window.scrollX + rect.left) + 'px';
             popup.style.display = 'block';
 
-            title.innerText = key;
+            title.innerText = key; 
             textarea.value = currentNote;
             textarea.setAttribute('data-current-key', key);
             
@@ -160,10 +152,31 @@ function createPopupElement() {
 
     const container = document.createElement("div");
     container.id = POPUP_ID;
-    
+
+    const header = document.createElement("div");
+    header.className = "popup-header";
+
     const title = document.createElement("div");
     title.className = "popup-title";
-    container.appendChild(title);
+    header.appendChild(title);
+
+    const deleteBtn = document.createElement("button");
+
+    deleteBtn.className = "delete-btn";
+    deleteBtn.innerText = "🗑️";
+    deleteBtn.title = "Supprimer ce surlignage";
+
+    deleteBtn.addEventListener('click', () => {
+        const textarea = document.getElementById(TEXTAREA_ID);
+        const keyToDelete = textarea.getAttribute('data-current-key');
+        
+        if (confirm(`Supprimer le surlignage pour "${keyToDelete}" ?`)) {
+            deleteHighlight(keyToDelete);
+        }
+    });
+    
+    header.appendChild(deleteBtn);
+    container.appendChild(header);
 
     const textarea = document.createElement("textarea");
     textarea.id = TEXTAREA_ID;
