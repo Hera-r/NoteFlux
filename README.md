@@ -16,6 +16,7 @@ Ne consommez plus le web passivement : transformez chaque site en votre propre c
 * **Marquage Instantané** : Sélectionnez du texte, il est immédiatement sauvegardé.
 * **Filtre Intelligent** : L'extension se met en pause automatiquement sur les moteurs de recherche et les réseaux sociaux pour garder votre espace de travail propre.
 * **Édition Fluide** : Ajoutez ou modifiez vos notes en un clic.
+* **Suppression Rapide** : Un bouton corbeille 🗑️ intégré pour retirer un marquage dont vous n'avez plus besoin.
 
 ## Installation
 
@@ -25,13 +26,14 @@ Ne consommez plus le web passivement : transformez chaque site en votre propre c
 4.  Cliquez sur **Charger l'extension non empaquetée**.
 5.  Sélectionnez le dossier `NoteFlux`.
 
-## 🎮 Comment l'utiliser ?
+## Comment l'utiliser ?
 
 1.  **Sélectionner** : Sur n'importe quel site, sélectionnez un mot ou une phrase avec la souris. Il devient jaune "NoteFlux".
 2.  **Annoter** : Cliquez sur le texte jaune pour ouvrir la bulle. Notez ce que vous voulez (traduction, rappel, idée...).
 3.  **Retrouver** : Naviguez sur le web. Vos mots marqués réapparaîtront automatiquement sur les autres sites.
+4.  **Nettoyer** : Plus besoin de ce mémo ? Cliquez dessus, puis sur la poubelle.
 
-## 🛠 Technologies
+## Technologies
 
 - JavaScript (Vanilla)
 - CSS3
