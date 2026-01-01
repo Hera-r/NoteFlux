@@ -1,36 +1,74 @@
-let savedHighlights = {}; 
+let savedHighlights = {};
 const POPUP_ID = "note-popup-container";
 const TEXTAREA_ID = "note-textarea";
 
-chrome.storage.local.get(['highlightsData'], function(result) {
-    savedHighlights = result.highlightsData || {};
-    applyHighlights();
-});
+const BLOCKED_DOMAINS = [
+    "google.",
+    "bing.com",
+    "yahoo.com",
+    "duckduckgo",
+    "facebook.com",
+    "twitter.com",
+    "x.com",
+    "instagram.com",
+    "linkedin.com",
+    "tiktok.com",
+    "chatgpt.com",
+    "openai.com",
+    "gemini.google",
+    "claude.ai",
+    "localhost"
+];
 
-createPopupElement();
 
-document.addEventListener('mouseup', function(event) {
-    const selection = window.getSelection();
-    const selectedText = selection.toString().trim();
+const currentHostname = window.location.hostname;
+const isBlocked = BLOCKED_DOMAINS.some(domain => currentHostname.includes(domain));
 
-    if (selectedText.length > 0 && !event.target.closest(`#${POPUP_ID}`)) {
+if (isBlocked) {
+    console.log("Auto Highlighter: Disabled on this domain.");
+} else {
+    startExtension();
+}
 
-        if (!savedHighlights[selectedText.toLowerCase()]) {
-            saveHighlight(selectedText.toLowerCase(), "");
-            selection.removeAllRanges();
+
+function startExtension() {
+    chrome.storage.local.get(['highlightsData'], function(result) {
+        savedHighlights = result.highlightsData || {};
+        applyHighlights();
+    });
+
+    createPopupElement();
+    attachSelectionListener();
+    attachPopupCloseListener();
+}
+
+
+function attachSelectionListener() {
+    document.addEventListener('mouseup', function(event) {
+        const selection = window.getSelection();
+        const selectedText = selection.toString().trim();
+
+        if (selectedText.length > 0 && !event.target.closest(`#${POPUP_ID}`)) {
+            if (!savedHighlights[selectedText.toLowerCase()]) {
+                saveHighlight(selectedText.toLowerCase(), "");
+                selection.removeAllRanges();
+            }
         }
-    }
-});
+    });
+}
 
-document.addEventListener('mousedown', function(event) {
-    const popup = document.getElementById(POPUP_ID);
 
-    if (popup.style.display === 'block' && 
-        !popup.contains(event.target) && 
-        !event.target.classList.contains('my-highlight')) {
-        popup.style.display = 'none';
-    }
-});
+function attachPopupCloseListener() {
+    document.addEventListener('mousedown', function(event) {
+        const popup = document.getElementById(POPUP_ID);
+        if (popup && popup.style.display === 'block' && 
+            !popup.contains(event.target) && 
+            !event.target.classList.contains('my-highlight')) {
+            popup.style.display = 'none';
+        }
+    });
+}
+
 
 function saveHighlight(key, note) {
     savedHighlights[key] = note;
@@ -39,22 +77,23 @@ function saveHighlight(key, note) {
     });
 }
 
+
 function applyHighlights() {
     const dataKeys = Object.keys(savedHighlights).sort((a, b) => b.length - a.length);
-
     if (dataKeys.length === 0) return;
 
     const bodyElements = document.body.getElementsByTagName("*");
 
     for (let element of bodyElements) {
-        if (["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA", "INPUT", "IMG"].includes(element.tagName)) continue;
-        if (element.id === POPUP_ID) continue;
+        if (["SCRIPT", "STYLE", "NOSCRIPT", "TEXTAREA", "INPUT", "IMG", "VIDEO", "BUTTON"].includes(element.tagName)) continue;
+        if (element.isContentEditable) continue;
+        if (element.id === POPUP_ID || element.closest(`#${POPUP_ID}`)) continue;
 
         for (let node of element.childNodes) {
             if (node.nodeType === 3 && node.nodeValue.trim().length > 0) {
                 let text = node.nodeValue;
                 let parent = node.parentNode;
-
+                
                 if (parent.classList.contains("my-highlight")) continue;
 
                 let replaced = false;
@@ -64,9 +103,6 @@ function applyHighlights() {
                     const regex = new RegExp(`\\b(${safeKey})\\b`, "gi");
 
                     if (regex.test(text)) {
-                        const span = document.createElement("span");
-                        span.className = "my-highlight";
-                        span.innerText = text.substring(text.search(regex), text.search(regex) + key.length);
                         const newHtml = text.replace(regex, (match) => {
                             return `<span class="my-highlight" data-key="${key}">${match}</span>`;
                         });
@@ -102,41 +138,46 @@ function attachClickEvents() {
 
             const key = span.getAttribute('data-key');
             const currentNote = savedHighlights[key] || "";
+
             const rect = span.getBoundingClientRect();
 
             popup.style.top = (window.scrollY + rect.bottom + 5) + 'px';
             popup.style.left = (window.scrollX + rect.left) + 'px';
             popup.style.display = 'block';
-            title.innerText = `Note for: "${key}"`;
+
+            title.innerText = key;
             textarea.value = currentNote;
             textarea.setAttribute('data-current-key', key);
+            
             textarea.focus();
         });
     });
 }
+
 
 function createPopupElement() {
     if (document.getElementById(POPUP_ID)) return;
 
     const container = document.createElement("div");
     container.id = POPUP_ID;
+    
     const title = document.createElement("div");
     title.className = "popup-title";
     container.appendChild(title);
+
     const textarea = document.createElement("textarea");
     textarea.id = TEXTAREA_ID;
-    textarea.placeholder = "Type your note here...";
+    textarea.placeholder = "Ajouter une note...";
     container.appendChild(textarea);
+
     document.body.appendChild(container);
 
     textarea.addEventListener('input', function() {
         const key = this.getAttribute('data-current-key');
         const text = this.value;
-
         if (key) {
             savedHighlights[key] = text;
             chrome.storage.local.set({ highlightsData: savedHighlights });
         }
     });
 }
-
